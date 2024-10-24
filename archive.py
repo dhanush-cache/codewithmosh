@@ -3,10 +3,16 @@ from tempfile import NamedTemporaryFile
 from typing import List
 from zipfile import ZipFile
 
+from natsort import natsorted
+
 
 class MoshZip(ZipFile):
     def namelist_from_ext(self, *extensions: str) -> List[str]:
-        return [file for file in self.namelist() if Path(file).suffix in extensions]
+        return [
+            file
+            for file in natsorted(self.namelist())
+            if Path(file).suffix in extensions
+        ]
 
     def extract_subtitles(self, video_path: str) -> Path:
         archived_subs = self.namelist_from_ext(".srt", ".vtt", ".ass")
