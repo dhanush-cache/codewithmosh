@@ -42,6 +42,21 @@ django = {
     "others": 2,
 }
 
+react16 = {
+    "source": "react16.zip",
+    "slug": "mastering-react",
+    "intro": 2,
+    "others": 2,
+}
+
+react18 = {
+    "source": "react18.zip",
+    "slug": "ultimate-react-part1",
+    "intro": 2,
+    "others": 2,
+}
+
+
 data = {}  # Replace with a pre-defined config. eg data = sql
 source_dir = ""  # Directory to scan for the zip files. Note that zip file should be named same as mentioned in its config.
 data["source"] = source_dir + data["source"]
