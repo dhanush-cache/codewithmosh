@@ -29,7 +29,7 @@ def extract_videos(archive: Path, target_list: Generator, ffmpeg=False):
                 target.with_suffix(subtitles.suffix).write_bytes(subtitles.read_bytes())
 
 
-def extract_non_videos(source: Path, target: Path):
+def extract_non_videos(source: Path, target_dir: Path):
     with MoshZip(source) as zip_ref:
         non_videos = (
             video
@@ -38,4 +38,6 @@ def extract_non_videos(source: Path, target: Path):
         )
         print("\nProcessing other files...")
         for video in tqdm(non_videos):
-            zip_ref.extract(video, target / "Files")
+            target = target_dir / "Files" / video.replace(":", "-")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(zip_ref.read(video))
