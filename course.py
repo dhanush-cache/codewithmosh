@@ -42,7 +42,7 @@ class CourseSerializer(ABC):
         response = requests.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
         tag = soup.select_one("#__NEXT_DATA__")
-        if tag:
+        if tag and tag.string:
             return json.loads(tag.string)["buildId"]
         raise ValueError("Cannot find the token")
 
