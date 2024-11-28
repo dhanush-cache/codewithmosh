@@ -35,6 +35,13 @@ sql = {
     "others": 2,
 }
 
+python = {
+    "source": "python.zip",
+    "slug": "python-programming-course-beginners",
+    "intro": 2,
+    "others": 2,
+}
+
 django = {
     "source": "django.zip",
     "slug": "the-ultimate-django-series",
@@ -56,6 +63,12 @@ react18 = {
     "others": 2,
 }
 
+javascript = {
+    "source": "javascript.zip",
+    "slug": "ultimate-javascript-series",
+    "intro": 1,
+    "others": 1,
+}
 
 data = {}  # Replace with a pre-defined config. eg data = sql
 source_dir = ""  # Directory to scan for the zip files. Note that zip file should be named same as mentioned in its config.
