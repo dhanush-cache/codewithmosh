@@ -116,7 +116,7 @@ class Course(CourseSerializer):
     def get_sections(self):
         return (
             Section(index, section_data)
-            for index, section_data in enumerate(self._data["curriculum"], start=1)
+            for index, section_data in enumerate(self._data["course"]["curriculum"], start=1)
         )
 
     def get_videos(self, root, bundle=None):
