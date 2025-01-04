@@ -34,5 +34,6 @@
   },
   "[java]": {
     "editor.defaultFormatter": "redhat.java"
-  }
+  },
+  "python.analysis.autoImportCompletions": true
 }
