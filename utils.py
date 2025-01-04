@@ -23,8 +23,8 @@ def extract_videos(archive: Path, target_list: Generator, ffmpeg=False):
                     video = Path(temp.name)
                     video.write_bytes(archived_video.read())
                     ffprocess(video, target, subtitles)
-                    continue
-            target.write_bytes(archived_video.read())
+            else:
+                target.write_bytes(archived_video.read())
             if subtitles:
                 target.with_suffix(subtitles.suffix).write_bytes(subtitles.read_bytes())
 
