@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 cpp = {
@@ -91,7 +92,9 @@ typescript = {
     "others": 2,
 }
 
-data = {}  # Replace with a pre-defined config. eg data = sql
-source_dir = ""  # Directory to scan for the zip files. Note that zip file should be named same as mentioned in its config.
-data["source"] = source_dir + data["source"]
-data["target"] = Path.home() / "Programming Videos"
+home = Path("/sdcard") if "ANDROID_STORAGE" in os.environ else Path.home()
+
+data = sql
+source_dir = next(home.glob("Download*"))
+data["source"] = source_dir / data["source"]
+data["target"] = home / "Programming Videos"
