@@ -70,6 +70,27 @@ javascript = {
     "others": 1,
 }
 
+docker = {
+    "source": "docker.zip",
+    "slug": "the-ultimate-docker-course",
+    "intro": 4,
+    "others": 2,
+}
+
+nodejs = {
+    "source": "nodejs.zip",
+    "slug": "the-complete-node-js-course",
+    "intro": 1,
+    "others": 1,
+}
+
+typescript = {
+    "source": "typescript.zip",
+    "slug": "the-ultimate-typescript",
+    "intro": 2,
+    "others": 2,
+}
+
 data = {}  # Replace with a pre-defined config. eg data = sql
 source_dir = ""  # Directory to scan for the zip files. Note that zip file should be named same as mentioned in its config.
 data["source"] = source_dir + data["source"]
