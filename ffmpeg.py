@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from input_data import data
+from configs import data
 
 ffmpeg = ["ffmpeg", "-y"]
 _metadata = [
@@ -90,7 +90,7 @@ def ffprocess(video: Path, target: Path, subtitles: Path | None = None):
     output = [f"{target}"]
 
     command = (
-            ffmpeg + inputs + mapping + codec + _metadata + metadata + thumbnail + output
+        ffmpeg + inputs + mapping + codec + _metadata + metadata + thumbnail + output
     )
 
     result = subprocess.run(

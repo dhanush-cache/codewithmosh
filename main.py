@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from course import CourseSerializer
-from input_data import data
+from configs import data
 from utils import extract_non_videos, extract_videos
 
 
