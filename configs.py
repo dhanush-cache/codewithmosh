@@ -81,6 +81,12 @@ courses = {
         "intro": 2,
         "others": 2,
     },
+    "design-patterns": {
+        "source": "design-patterns.zip",
+        "slug": "design-patterns",
+        "intro": 3,
+        "others": 1,
+    },
 }
 
 home = Path("/sdcard") if "ANDROID_STORAGE" in os.environ else Path.home()
