@@ -3,7 +3,6 @@ import subprocess
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from configs import data
 
 ffmpeg = ["ffmpeg", "-y"]
 _metadata = [
@@ -47,7 +46,7 @@ def has_embedded_subs(video: Path) -> bool:
     return "subtitle" in result.stderr.lower()
 
 
-def ffprocess(video: Path, target: Path, subtitles: Path | None = None):
+def ffprocess(video: Path, target: Path, timestamp: int, subtitles: Path | None = None):
     inputs = ["-i", f"{video}"]
     if subtitles:
         inputs += ["-i", f"{subtitles}"]
@@ -67,7 +66,6 @@ def ffprocess(video: Path, target: Path, subtitles: Path | None = None):
             "language=en",
         ]
 
-    timestamp = data["intro" if target.name.startswith("01") else "others"]
     thumbnail = [
         "-attach",
         f"{get_thumb(video, timestamp)}",

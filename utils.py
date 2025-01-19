@@ -9,7 +9,9 @@ from archive import MoshZip
 from ffmpeg import ffprocess
 
 
-def extract_videos(archive: Path, target_list: Generator, ffmpeg=False):
+def extract_videos(
+    archive: Path, target_list: Generator, ffmpeg=False, intro=0, others=0
+):
     with MoshZip(archive) as zip_ref:
         archived_videos = zip_ref.namelist_from_ext(".mp4", ".mkv")
         print("Processing videos...")
@@ -22,7 +24,8 @@ def extract_videos(archive: Path, target_list: Generator, ffmpeg=False):
                 with NamedTemporaryFile(suffix=archived_path.suffix) as temp:
                     video = Path(temp.name)
                     video.write_bytes(archived_video.read())
-                    ffprocess(video, target, subtitles)
+                    timestamp = intro if target.name.startswith("01") else others
+                    ffprocess(video, target, timestamp, subtitles)
             else:
                 target.write_bytes(archived_video.read())
             if subtitles:
