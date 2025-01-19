@@ -54,6 +54,12 @@ def main():
         if args.input_archive
         else (downloads / f"{args.config}.zip")
     )
+    if not source.exists():
+        parser.error(f"No such file: {source}")
+        if not args.input_archive:
+            parser.error("The following arguments are required: input-archive")
+        exit(1)
+
     course = CourseSerializer.get_course(slug)
     target = HOME / "Programming Videos"
     target_list = course.get_videos(target)
