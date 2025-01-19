@@ -6,10 +6,7 @@
   "editor.fontLigatures": true,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "github.copilot.enable": {
-    "*": false,
-    "plaintext": false,
-    "markdown": false,
-    "scminput": false
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
   }
 }
