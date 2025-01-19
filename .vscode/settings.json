@@ -1,39 +1,15 @@
 {
-  "window.commandCenter": false,
-  "files.autoSave": "off",
-  "editor.formatOnSave": true,
-  "workbench.editorAssociations": {
-    "git-rebase-todo": "default"
-  },
   "workbench.colorTheme": "Catppuccin Mocha",
   "workbench.iconTheme": "material-icon-theme",
-  "editor.fontFamily": "JetBrains Mono",
-  "terminal.integrated.fontFamily": "MesloLGS Nerd Font Mono",
-  "workbench.panel.defaultLocation": "right",
-  "window.zoomLevel": 2.5,
-  "editor.fontSize": 20,
-  "code-runner.clearPreviousOutput": true,
-  "code-runner.ignoreSelection": true,
-  "code-runner.saveAllFilesBeforeRun": true,
-  "code-runner.showExecutionMessage": false,
-  "code-runner.executorMap": {
-    "python": "python3",
-    "c": "cmake --build build > /dev/null && build/dhanush",
-    "cpp": "cmake --build build > /dev/null && build/dhanush",
-    "java": "cmake --build target > /dev/null && java -cp target/CMakeFiles/JavaProject.dir/ com.package.Main"
-  },
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  },
-  "C_Cpp.clang_format_style": "{BasedOnStyle: Google, IndentWidth: 4, AllowShortFunctionsOnASingleLine: Empty}",
-  "[shellscript]": {
-    "editor.defaultFormatter": "mkhl.shfmt"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[java]": {
-    "editor.defaultFormatter": "redhat.java"
-  },
-  "python.analysis.autoImportCompletions": true
+  "editor.fontFamily": "Jetbrains Mono",
+  "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Mono",
+  "editor.fontLigatures": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  }
 }
