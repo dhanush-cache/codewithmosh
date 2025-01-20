@@ -1,12 +1,14 @@
+import os
 import zipfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
+import requests
 from tqdm import tqdm
 
 from ffmpeg import get_blank_video
-from main import HOME
 
+HOME = Path("/sdcard") if "ANDROID_STORAGE" in os.environ else Path.home()
 TEMP = HOME / "tmp"
 
 TEMP.mkdir(parents=True, exist_ok=True)
@@ -39,3 +41,18 @@ def cpp(*archives):
     pattern = "62_14_Parsing_Strings.mp4"
     add_file_to_zip(merged, get_blank_video(10), pattern)
     return merged
+
+
+def download_archive(url, suffix=".zip"):
+    file = Path(NamedTemporaryFile(dir=TEMP, suffix=suffix).name)
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with file.open("wb") as f:
+            total_size = int(r.headers.get("content-length", 0))
+            with tqdm(
+                total=total_size, unit="B", unit_scale=True, desc="Downloading archive"
+            ) as pbar:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    pbar.update(len(chunk))
+    return file

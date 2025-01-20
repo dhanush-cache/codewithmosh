@@ -8,6 +8,7 @@ requests = "*"
 natsort = "*"
 tqdm = "*"
 beautifulsoup4 = "*"
+pyperclip = "*"
 
 [dev-packages]
 black = "*"

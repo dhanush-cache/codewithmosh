@@ -3,6 +3,8 @@ import json
 import os
 from pathlib import Path
 
+from pyperclip import copy
+
 import hooks
 from course import CourseSerializer
 from utils import extract_non_videos, extract_videos
@@ -49,7 +51,7 @@ def main():
 
     course_data = courses[args.config]
 
-    slug, template_id = course_data.values()
+    slug, template_id, *others = course_data.values()
     intro, others = data["templates"][template_id]
     if args.config in dir(hooks):
         hook = getattr(hooks, args.config)
@@ -64,10 +66,16 @@ def main():
         else (downloads / f"{args.config}.zip")
     )
     if not source.exists():
-        parser.error(f"No such file: {source}")
-        if not args.input_archive:
-            parser.error("The following arguments are required: input-archive")
-        exit(1)
+        magnets = course_data["magnets"]
+        if len(magnets) == 1:
+            hook = lambda *x: x[0]
+        files = []
+        for magnet in magnets:
+            copy(magnet)
+            print("Magnet copied to your clipboard! Paste the download link.")
+            files.append(hooks.download_archive(input("Download Link: ")))
+
+        source = hook(*files)
 
     course = CourseSerializer.get_course(slug)
     target = HOME / "Programming Videos"
