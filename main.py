@@ -1,11 +1,11 @@
+import argparse
 import json
 import os
 from pathlib import Path
-import argparse
 
+import hooks
 from course import CourseSerializer
 from utils import extract_non_videos, extract_videos
-
 
 HOME = Path("/sdcard") if "ANDROID_STORAGE" in os.environ else Path.home()
 
@@ -29,7 +29,9 @@ def main():
         action="store_true",
         help="List all available configurations",
     )
-    parser.add_argument("-i", "--input-archive", help="Path to the input file")
+    parser.add_argument(
+        "-i", "--input-archive", nargs="+", help="Path to the input file"
+    )
     args = parser.parse_args()
 
     config_file = Path("data.json")
@@ -49,8 +51,15 @@ def main():
 
     slug, template_id = course_data.values()
     intro, others = data["templates"][template_id]
+    if args.config in dir(hooks):
+        hook = getattr(hooks, args.config)
+    elif args.input_archive and len(args.input_archive) == 1:
+        hook = lambda *x: x[0]
+    else:
+        hook = hooks.merge_zips
+
     source = (
-        Path(args.input_archive)
+        hook(*args.input_archive)
         if args.input_archive
         else (downloads / f"{args.config}.zip")
     )
