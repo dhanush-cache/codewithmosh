@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
-from typing import Generator
+from typing import Iterator
 from zipfile import BadZipFile, ZipFile
 
 from natsort import natsorted
@@ -13,8 +13,12 @@ from utils.configs import TEMP
 
 
 def extract_videos(
-    archive: Path, target_list: Generator, ffmpeg=False, intro=0, others=0
-):
+    archive: Path,
+    target_list: Iterator[Path],
+    ffmpeg: bool = False,
+    intro: int = 0,
+    others: int = 0,
+) -> None:
     with MoshZip(archive) as zip_ref:
         archived_videos = zip_ref.namelist_from_ext(".mp4", ".mkv")
         print("Processing videos...")
@@ -35,7 +39,7 @@ def extract_videos(
                 target.with_suffix(subtitles.suffix).write_bytes(subtitles.read_bytes())
 
 
-def extract_non_videos(source: Path, target_dir: Path):
+def extract_non_videos(source: Path, target_dir: Path) -> None:
     with MoshZip(source) as zip_ref:
         non_videos = (
             video
@@ -43,26 +47,27 @@ def extract_non_videos(source: Path, target_dir: Path):
             if video in zip_ref.namelist_from_ext(".zip", ".pdf")
         )
         print("\nProcessing other files...")
-        for video in tqdm(non_videos):
+        for video in tqdm(list(non_videos)):
             target = target_dir / "Files" / video.replace(":", "-")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(zip_ref.read(video))
 
 
-def merge_zips(*archives):
+def merge_zips(*archives: Path) -> Path:
     if len(archives) == 1 and archives[0].suffix == ".zip":
-        return archive[0]
+        return archives[0]
     with TemporaryDirectory(dir=TEMP) as temp_dir:
         temp_dir = Path(temp_dir)
-        for i, archive in enumerate(tqdm(archives, desc="Unpacking archives")):
+        print("Unpacking archives...")
+        for part_index, archive in enumerate(tqdm(archives)):
             if archive.is_dir():
-                shutil.move(str(archive), temp_dir / f"{i}")
+                shutil.move(str(archive), temp_dir / f"{part_index}")
                 continue
             temp_dir = Path(temp_dir)
             with ZipFile(archive, "r") as zip_ref:
                 for member in zip_ref.namelist():
                     try:
-                        zip_ref.extract(member, temp_dir / f"{i}")
+                        zip_ref.extract(member, temp_dir / f"{part_index}")
                     except BadZipFile:
                         print(f"Error: {member} skipped.")
 

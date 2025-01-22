@@ -2,6 +2,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any, Dict, Iterator
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,23 +23,25 @@ class CourseSerializer(ABC):
         "for Beginners",
     ]
 
-    def __init__(self, slug: str):
+    def __init__(self, slug: str) -> None:
         self.slug = slug
         self._data = self.get_data()
-        self.name = self._data["course"]["name"]
-        self.is_bundle = self._data["course"]["type"] == "bundle"
+        self.name: str = self._data["course"]["name"]
+        self.is_bundle: bool = self._data["course"]["type"] == "bundle"
 
     @staticmethod
-    def get_course(slug):
+    def get_course(slug: str) -> "Course | CourseBundle":
         course = Course(slug)
         return course if not course.is_bundle else CourseBundle(slug)
 
     @abstractmethod
-    def get_videos(self, root):
+    def get_videos(
+        self, root: Path, bundle: "CourseBundle | None" = None
+    ) -> Iterator[Path]:
         pass
 
     @staticmethod
-    def get_token():
+    def get_token() -> str:
         url = "https://codewithmosh.com/"
         response = requests.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -47,18 +50,18 @@ class CourseSerializer(ABC):
             return json.loads(tag.string)["buildId"]
         raise ValueError("Cannot find the token")
 
-    def get_data(self):
+    def get_data(self) -> Dict[Any, Any]:
         url = (
             f"https://codewithmosh.com/_next/data/{self.get_token()}/p/{self.slug}.json"
         )
         return self.get_json(url)
 
     @staticmethod
-    def get_json(url):
+    def get_json(url: str) -> Dict[Any, Any]:
         response = requests.get(url)
         return json.loads(response.content)["pageProps"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         name = f"{self.name}"
         for keyword in self.keywords:
             name = name.replace(keyword, "")
@@ -66,25 +69,31 @@ class CourseSerializer(ABC):
 
 
 class Lesson:
-    def __init__(self, lesson_index: int, context: dict):
+    def __init__(self, lesson_index: int, context: Dict[Any, Any]) -> None:
         self.index = lesson_index
         self.__data = context
         self.name = self.__data.get("name")
-        self.is_video = self.__data["type"] == 1
+        self.is_video: bool = self.__data["type"] == 1
         self.duration = self.__get_duration()
         self.url = f"https://codewithmosh.teachable.com/{self.__data.get("href")}"
 
-    def __get_duration(self):
+    def __get_duration(self) -> int | None:
         if not self.is_video:
             return None
         time = self.__data["duration"]
         minutes, seconds = [int(unit.strip("ms")) for unit in time.split()]
         return (minutes * 60) + seconds
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.index:02}- {self.name}"
 
-    def get_path(self, section, course, bundle, root):
+    def get_path(
+        self,
+        section: "Section",
+        course: "Course",
+        bundle: "CourseBundle | None",
+        root: Path,
+    ) -> Path:
         base = (
             f"{root}/{bundle}/{str(course).lstrip(bundle.get_common_part())}"
             if bundle
@@ -95,15 +104,15 @@ class Lesson:
 
 
 class Section:
-    def __init__(self, section_index, data):
+    def __init__(self, section_index: int, data: Dict[Any, Any]):
         self.index = section_index
         self.__data = data
         self.name = self.__data.get("name")
 
-    def get_lessons(self):
+    def get_lessons(self) -> Iterator[Lesson]:
         return (
             Lesson(index, lesson_data)
-            for index, lesson_data in enumerate(self.__data.get("lessons"), start=1)
+            for index, lesson_data in enumerate(self.__data.get("lessons", []), start=1)
         )
 
     def __str__(self):
@@ -114,7 +123,7 @@ class Section:
 
 
 class Course(CourseSerializer):
-    def get_sections(self):
+    def get_sections(self) -> Iterator[Section]:
         return (
             Section(index, section_data)
             for index, section_data in enumerate(
@@ -122,7 +131,9 @@ class Course(CourseSerializer):
             )
         )
 
-    def get_videos(self, root, bundle=None):
+    def get_videos(
+        self, root: Path, bundle: "CourseBundle | None" = None
+    ) -> Iterator[Path]:
         return (
             lesson.get_path(section, self, bundle, root)
             for section in self.get_sections()
@@ -139,7 +150,7 @@ class CourseBundle(CourseSerializer):
         super().__init__(slug)
         self.courses = list(self.get_courses())
 
-    def get_courses(self):
+    def get_courses(self) -> Iterator[Course]:
         url = f"https://codewithmosh.com/_next/data/{self.get_token()}/courses.json"
         courses = self.get_json(url)
         return (
@@ -155,6 +166,8 @@ class CourseBundle(CourseSerializer):
             prefix = prefix.rstrip("Part")
         return prefix
 
-    def get_videos(self, root):
+    def get_videos(
+        self, root: Path, bundle: "CourseBundle | None" = None
+    ) -> Iterator[Path]:
         for course in self.courses:
             yield from course.get_videos(root, self)

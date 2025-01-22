@@ -1,11 +1,11 @@
 import subprocess
 
-from pyperclip import copy
+from pyperclip import copy  # type: ignore
 
 from utils.configs import ON_ANDROID
 
 
-def copy_to_clipboard(text: str, label: str = "Text", quiet=False) -> None:
+def copy_to_clipboard(text: str, label: str = "Text", quiet: bool = False) -> None:
     if ON_ANDROID:
         __termux_copy(text, label)
     else:
@@ -14,7 +14,7 @@ def copy_to_clipboard(text: str, label: str = "Text", quiet=False) -> None:
         print(f"{label}: {text} copied...✔")
 
 
-def __termux_copy(text, label):
+def __termux_copy(text: str, label: str):
     try:
         subprocess.run(
             ["termux-clipboard-set"],

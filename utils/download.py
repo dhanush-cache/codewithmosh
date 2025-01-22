@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import requests
-import yt_dlp
+import yt_dlp  # type: ignore
 from tqdm import tqdm
 
 from seedr.account import SeedrAccount
@@ -16,10 +16,10 @@ def download_video(url: str, path: Path = Path("/sdcard/Download")):
     folder.mkdir(parents=True, exist_ok=True)
     opts = {"outtmpl": outtmpl}
     with yt_dlp.YoutubeDL(opts) as ydl:
-        ydl.download([url])
+        ydl.download([url])  # type: ignore
 
 
-def download_magnet(magnet):
+def download_magnet(magnet: str) -> Path:
     target = Path(TemporaryDirectory(dir=TEMP, delete=False).name)
     account = SeedrAccount()
     folder_id = account.add_torrent(magnet)
@@ -31,7 +31,7 @@ def download_magnet(magnet):
     return target
 
 
-def download_archive(url, suffix=".zip"):
+def download_archive(url: str, suffix: str = ".zip") -> Path:
     file = Path(NamedTemporaryFile(dir=TEMP, suffix=suffix).name)
     with requests.get(url, stream=True) as r:
         r.raise_for_status()

@@ -1,7 +1,7 @@
 import argparse
 import json
-import os
 from pathlib import Path
+from typing import Any, Dict, List
 
 import hooks
 from course import CourseSerializer
@@ -11,13 +11,13 @@ from utils.download import download_archive, download_magnet
 from utils.general import copy_to_clipboard
 
 
-def list_configs(courses):
+def list_configs(courses: Dict[str, Any]) -> None:
     print("Available configurations:")
     for i, course in enumerate(sorted(courses.keys()), 1):
         print(f"{i:02}. {course}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="Code With Mosh",
         description="Organizes courses from codewithmosh.com",
@@ -70,7 +70,7 @@ def main():
     )
     if not source.exists():
         magnets = course_data["magnets"]
-        files = []
+        files: List[Path] = []
         for magnet in magnets:
             if args.quiet:
                 files.append(download_magnet(magnet))

@@ -1,13 +1,12 @@
 import json
-import subprocess
 import webbrowser
 from pathlib import Path
 from time import sleep, time
-from typing import cast
-from urllib.parse import parse_qs, urlparse
+from typing import Any, Dict, List, cast
+from urllib.parse import ParseResult, parse_qs, urlparse
 
 import requests
-from seedrcc import Login, Seedr
+from seedrcc import Login, Seedr  # type: ignore
 
 from utils.general import copy_to_clipboard
 
@@ -40,7 +39,7 @@ class SeedrAccount:
         sleep(10)
         while True:
             sleep(2)
-            response = seedr.authorize(deviceCode["device_code"])
+            response = seedr.authorize(deviceCode["device_code"])  # type: ignore
             if "error" not in response:
                 break
 
@@ -48,17 +47,20 @@ class SeedrAccount:
         self.__update_token(token)
         return token
 
-    def get_torrents(self) -> list:
+    def get_torrents(self) -> List[Dict[Any, Any]]:
         """Get a list of active torrents."""
-        return self._list_contents()["torrents"]
+        return self.list_contents()["torrents"]
 
     def add_torrent(self, magnet_link: str) -> int:
         """Add torrent by its magnet link."""
         start_time = time()
 
-        torrent_id = cast(dict, self.account.addTorrent(magnet_link))["user_torrent_id"]
+        torrent_id = cast(
+            Dict[Any, Any],
+            self.account.addTorrent(magnet_link),  # type: ignore
+        )["user_torrent_id"]
         torrents = self.get_torrents()
-        fetched = torrents and torrents[0]["id"] == torrent_id
+        fetched: bool = bool(torrents and torrents[0]["id"] == torrent_id)
         torrent = torrents[0] if fetched else None
 
         while True:
@@ -73,40 +75,40 @@ class SeedrAccount:
 
     def get_latest_folder_id(self) -> int:
         """Get the folder id for the last added folder."""
-        folders = self._list_contents()["folders"]
+        folders = self.list_contents()["folders"]
         return folders[-1]["id"]
 
     def get_top_file_url(self, folder_id: int = 0) -> str:
         if not folder_id:
             folder_id = self.get_latest_folder_id()
-        files = self._list_contents(folder_id)["files"]
+        files: List[Dict[Any, Any]] = self.list_contents(folder_id)["files"]
         files.sort(key=lambda file: file["size"], reverse=True)
         largest_file_id = files[0]["folder_file_id"]
-        return cast(dict, self.account.fetchFile(largest_file_id))["url"]
+        return cast(dict, self.account.fetchFile(largest_file_id))["url"]  # type: ignore
 
     def magnet_to_url(self, magnet_link: str) -> str:
         folder_id = self.add_torrent(magnet_link)
         return self.get_top_file_url(folder_id)
 
     def delete_folder(self, folder_id: int = 0) -> None:
-        if "error" in self._list_contents(folder_id):
+        if "error" in self.list_contents(folder_id):
             raise KeyError("Folder does not exist.")
-        self.account.deleteFolder(folder_id)
+        self.account.deleteFolder(folder_id)  # type: ignore
 
-    def _list_contents(self, folder_id: int = 0) -> dict:
-        return cast(dict, self.account.listContents(folder_id))
+    def list_contents(self, folder_id: int = 0) -> Dict[Any, Any]:
+        return cast(Dict[Any, Any], self.account.listContents(folder_id))
 
-    def _fetch_file(self, file_id: int = 0) -> dict:
-        return cast(dict, self.account.fetchFile(file_id))
+    def fetch_file(self, file_id: int = 0) -> Dict[Any, Any]:
+        return cast(Dict[Any, Any], self.account.fetchFile(file_id))  # type: ignore
 
     def __read_token(self) -> str:
         if self.token_file.exists():
             return self.token_file.read_text()
         return self.login()
 
-    def __get_id_from_torrent(self, torrent) -> int:
+    def __get_id_from_torrent(self, torrent: Dict[Any, Any]) -> int:
         progress_url = torrent["progress_url"]
-        parsed = urlparse(progress_url)
+        parsed = cast(ParseResult, urlparse(progress_url))
         url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
         queries = parse_qs(parsed.query)
@@ -117,5 +119,5 @@ class SeedrAccount:
         folder_id = torrent_info["stats"]["folder_created"]
         return folder_id
 
-    def __update_token(self, token) -> None:
+    def __update_token(self, token: str) -> None:
         self.token_file.write_text(token)
