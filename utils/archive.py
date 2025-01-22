@@ -1,12 +1,15 @@
+import shutil
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Generator
+from zipfile import BadZipFile, ZipFile
 
 from natsort import natsorted
 from tqdm import tqdm
 
 from archive import MoshZip
 from ffmpeg import ffprocess
+from utils.configs import TEMP
 
 
 def extract_videos(
@@ -44,3 +47,27 @@ def extract_non_videos(source: Path, target_dir: Path):
             target = target_dir / "Files" / video.replace(":", "-")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(zip_ref.read(video))
+
+
+def merge_zips(*archives):
+    if len(archives) == 1 and archives[0].suffix == ".zip":
+        return archive[0]
+    with TemporaryDirectory(dir=TEMP) as temp_dir:
+        temp_dir = Path(temp_dir)
+        for i, archive in enumerate(tqdm(archives, desc="Unpacking archives")):
+            if archive.is_dir():
+                shutil.move(str(archive), temp_dir / f"{i}")
+                continue
+            temp_dir = Path(temp_dir)
+            with ZipFile(archive, "r") as zip_ref:
+                for member in zip_ref.namelist():
+                    try:
+                        zip_ref.extract(member, temp_dir / f"{i}")
+                    except BadZipFile:
+                        print(f"Error: {member} skipped.")
+
+        with NamedTemporaryFile(dir=TEMP, delete=False, suffix=".zip") as output_zip:
+            with ZipFile(output_zip, "w") as zipf:
+                for file in tqdm(list(temp_dir.rglob("*")), desc="Repacking archive"):
+                    zipf.write(file, file.relative_to(temp_dir))
+            return Path(output_zip.name)

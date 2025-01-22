@@ -3,13 +3,12 @@ import json
 import os
 from pathlib import Path
 
-from pyperclip import copy
-
 import hooks
 from course import CourseSerializer
-from utils import extract_non_videos, extract_videos
-
-HOME = Path("/sdcard") if "ANDROID_STORAGE" in os.environ else Path.home()
+from utils.archive import extract_non_videos, extract_videos, merge_zips
+from utils.configs import HOME
+from utils.download import download_archive, download_magnet
+from utils.general import copy_to_clipboard
 
 
 def list_configs(courses):
@@ -34,6 +33,12 @@ def main():
     parser.add_argument(
         "-i", "--input-archive", nargs="+", help="Path to the input file"
     )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="Disable manual interactions",
+    )
     args = parser.parse_args()
 
     config_file = Path("data.json")
@@ -55,25 +60,23 @@ def main():
     intro, others = data["templates"][template_id]
     if args.config in dir(hooks):
         hook = getattr(hooks, args.config)
-    elif args.input_archive and len(args.input_archive) == 1:
-        hook = lambda *x: x[0]
     else:
-        hook = hooks.merge_zips
+        hook = merge_zips
 
     source = (
-        hook(*args.input_archive)
+        hook(*[Path(x) for x in args.input_archive])
         if args.input_archive
         else (downloads / f"{args.config}.zip")
     )
     if not source.exists():
         magnets = course_data["magnets"]
-        if len(magnets) == 1:
-            hook = lambda *x: x[0]
         files = []
         for magnet in magnets:
-            copy(magnet)
-            print("Magnet copied to your clipboard! Paste the download link.")
-            files.append(hooks.download_archive(input("Download Link: ")))
+            if args.quiet:
+                files.append(download_magnet(magnet))
+                continue
+            copy_to_clipboard(magnet, quiet=True)
+            files.append(download_archive(input("Download Link: ")))
 
         source = hook(*files)
 

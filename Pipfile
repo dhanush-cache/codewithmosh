@@ -9,6 +9,7 @@ natsort = "*"
 tqdm = "*"
 beautifulsoup4 = "*"
 pyperclip = "*"
+yt-dlp = "*"
 
 [dev-packages]
 black = "*"
