@@ -19,7 +19,11 @@ def merge_zips(*archives):
         for i, archive in enumerate(tqdm(archives, desc="Unpacking archives")):
             temp_dir = Path(temp_dir)
             with zipfile.ZipFile(archive, "r") as zip_ref:
-                zip_ref.extractall(temp_dir / f"{i}")
+                for member in zip_ref.namelist():
+                    try:
+                        zip_ref.extract(member, temp_dir / f"{i}")
+                    except zipfile.BadZipFile:
+                        print(f"Error: {member} skipped.")
 
         with NamedTemporaryFile(dir=TEMP, delete=False, suffix=".zip") as output_zip:
             with zipfile.ZipFile(output_zip, "w") as zipf:
@@ -39,6 +43,14 @@ def cpp(*archives):
     archives = [Path(archive) for archive in archives]
     merged = merge_zips(*archives)
     pattern = "62_14_Parsing_Strings.mp4"
+    add_file_to_zip(merged, get_blank_video(10), pattern)
+    return merged
+
+
+def django(*archives):
+    archives = [Path(archive) for archive in archives]
+    merged = merge_zips(*archives)
+    pattern = "Part 2/lesson76.mp4"
     add_file_to_zip(merged, get_blank_video(10), pattern)
     return merged
 
