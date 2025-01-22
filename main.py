@@ -6,12 +6,21 @@ from typing import Any, Dict, List
 import hooks
 from course import CourseSerializer
 from utils.archive import extract_non_videos, extract_videos, merge_zips
-from utils.configs import HOME
+from utils.configs import HOME, DOWNLOADS
 from utils.download import download_archive, download_magnet
 from utils.general import copy_to_clipboard
 
 
 def list_configs(courses: Dict[str, Any]) -> None:
+    """
+    Prints a list of available configurations from the given courses dictionary.
+
+    Args:
+        courses (Dict[str, Any]): A dictionary where keys are course names and values are course configurations.
+
+    Returns:
+        None
+    """
     print("Available configurations:")
     for i, course in enumerate(sorted(courses.keys()), 1):
         print(f"{i:02}. {course}")
@@ -52,8 +61,6 @@ def main() -> None:
     if not args.config:
         parser.error("The following arguments are required: config")
 
-    downloads = next(HOME.glob("Download*"))
-
     course_data = courses[args.config]
 
     slug, template_id, *others = course_data.values()
@@ -66,7 +73,7 @@ def main() -> None:
     source = (
         hook(*[Path(x) for x in args.input_archive])
         if args.input_archive
-        else (downloads / f"{args.config}.zip")
+        else (DOWNLOADS / f"{args.config}.zip")
     )
     if not source.exists():
         magnets = course_data["magnets"]

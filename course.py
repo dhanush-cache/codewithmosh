@@ -9,6 +9,35 @@ from bs4 import BeautifulSoup
 
 
 class CourseSerializer(ABC):
+    """
+    CourseSerializer is an abstract base class for serializing course data from the Code with Mosh website.
+
+    Attributes:
+        keywords (List[str]): A list of keywords to be removed from course names.
+
+    Args:
+        slug (str): The slug identifier for the course.
+
+    Methods:
+        get_course(slug: str) -> "Course | CourseBundle":
+            Retrieves a Course or CourseBundle object based on the slug.
+
+        get_videos(root: Path, bundle: "CourseBundle | None" = None) -> Iterator[Path]:
+            Abstract method to be implemented by subclasses to get video paths.
+
+        get_token() -> str:
+            Retrieves a token required for accessing course data.
+
+        get_data() -> Dict[Any, Any]:
+            Fetches course data from the Code with Mosh website.
+
+        get_json(url: str) -> Dict[Any, Any]:
+            Fetches and parses JSON data from the given URL.
+
+        __str__() -> str:
+            Returns the course name with specified keywords removed.
+    """
+
     keywords = [
         "Mastering",
         "Mastery",
@@ -31,6 +60,16 @@ class CourseSerializer(ABC):
 
     @staticmethod
     def get_course(slug: str) -> "Course | CourseBundle":
+        """
+        Retrieve a course or course bundle based on the provided slug.
+
+        Args:
+            slug (str): The unique identifier for the course or course bundle.
+
+        Returns:
+            Course | CourseBundle: An instance of Course if the slug corresponds to a single course,
+                                   or an instance of CourseBundle if the slug corresponds to a course bundle.
+        """
         course = Course(slug)
         return course if not course.is_bundle else CourseBundle(slug)
 
@@ -42,6 +81,19 @@ class CourseSerializer(ABC):
 
     @staticmethod
     def get_token() -> str:
+        """
+        Fetches a token from the specified URL.
+
+        This function sends a GET request to the URL "https://codewithmosh.com/",
+        parses the HTML content to find a specific tag with the id "__NEXT_DATA__",
+        and extracts the "buildId" from the JSON content of that tag.
+
+        Returns:
+            str: The extracted token (buildId).
+
+        Raises:
+            ValueError: If the token cannot be found in the HTML content.
+        """
         url = "https://codewithmosh.com/"
         response = requests.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -51,6 +103,12 @@ class CourseSerializer(ABC):
         raise ValueError("Cannot find the token")
 
     def get_data(self) -> Dict[Any, Any]:
+        """
+        Fetches data from a dynamically constructed URL based on the token and slug.
+
+        Returns:
+            Dict[Any, Any]: The JSON response from the constructed URL.
+        """
         url = (
             f"https://codewithmosh.com/_next/data/{self.get_token()}/p/{self.slug}.json"
         )
@@ -58,6 +116,20 @@ class CourseSerializer(ABC):
 
     @staticmethod
     def get_json(url: str) -> Dict[Any, Any]:
+        """
+        Fetches JSON data from the given URL and returns the 'pageProps' content.
+
+        Args:
+            url (str): The URL to fetch the JSON data from.
+
+        Returns:
+            Dict[Any, Any]: The 'pageProps' content from the JSON response.
+
+        Raises:
+            requests.exceptions.RequestException: If there is an issue with the HTTP request.
+            json.JSONDecodeError: If the response content is not valid JSON.
+            KeyError: If 'pageProps' is not found in the JSON response.
+        """
         response = requests.get(url)
         return json.loads(response.content)["pageProps"]
 
@@ -94,6 +166,18 @@ class Lesson:
         bundle: "CourseBundle | None",
         root: Path,
     ) -> Path:
+        """
+        Generate the file path for a given section, course, and optional course bundle.
+
+        Args:
+            section (Section): The section for which the path is being generated.
+            course (Course): The course for which the path is being generated.
+            bundle (CourseBundle | None): The optional course bundle that the course belongs to.
+            root (Path): The root directory path.
+
+        Returns:
+            Path: The generated file path for the given section, course, and optional course bundle.
+        """
         base = (
             f"{root}/{bundle}/{str(course).lstrip(bundle.get_common_part())}"
             if bundle
@@ -110,6 +194,12 @@ class Section:
         self.name = self.__data.get("name")
 
     def get_lessons(self) -> Iterator[Lesson]:
+        """
+        Retrieves an iterator of Lesson objects from the course data.
+
+        Returns:
+            Iterator[Lesson]: An iterator of Lesson objects, each representing a lesson in the course.
+        """
         return (
             Lesson(index, lesson_data)
             for index, lesson_data in enumerate(self.__data.get("lessons", []), start=1)
@@ -124,6 +214,15 @@ class Section:
 
 class Course(CourseSerializer):
     def get_sections(self) -> Iterator[Section]:
+        """
+        Retrieve the sections of the course.
+
+        This method generates an iterator of Section objects, each representing a section
+        of the course curriculum. The sections are indexed starting from 1.
+
+        Returns:
+            Iterator[Section]: An iterator of Section objects.
+        """
         return (
             Section(index, section_data)
             for index, section_data in enumerate(
@@ -134,6 +233,16 @@ class Course(CourseSerializer):
     def get_videos(
         self, root: Path, bundle: "CourseBundle | None" = None
     ) -> Iterator[Path]:
+        """
+        Retrieve video file paths from the course sections and lessons.
+
+        Args:
+            root (Path): The root directory path where the course files are located.
+            bundle (CourseBundle | None, optional): An optional course bundle to filter the videos. Defaults to None.
+
+        Returns:
+            Iterator[Path]: An iterator of Paths to the video files.
+        """
         return (
             lesson.get_path(section, self, bundle, root)
             for section in self.get_sections()
@@ -151,6 +260,16 @@ class CourseBundle(CourseSerializer):
         self.courses = list(self.get_courses())
 
     def get_courses(self) -> Iterator[Course]:
+        """
+        Fetches and returns an iterator of Course objects.
+
+        This method constructs a URL using a token and retrieves a JSON response
+        containing course data. It then filters and returns an iterator of Course
+        objects for courses that are part of the bundle contents.
+
+        Returns:
+            Iterator[Course]: An iterator of Course objects.
+        """
         url = f"https://codewithmosh.com/_next/data/{self.get_token()}/courses.json"
         courses = self.get_json(url)
         return (
@@ -160,6 +279,13 @@ class CourseBundle(CourseSerializer):
         )
 
     def get_common_part(self) -> str:
+        """
+        Extracts the common prefix from the names of the courses in the course list.
+
+        Returns:
+            str: The common prefix of the course names. If the common prefix ends with "Part",
+                 it will be stripped from the result.
+        """
         course_names = [course.name for course in self.courses]
         prefix = os.path.commonprefix(course_names).strip()
         if prefix.endswith("Part"):
@@ -169,5 +295,15 @@ class CourseBundle(CourseSerializer):
     def get_videos(
         self, root: Path, bundle: "CourseBundle | None" = None
     ) -> Iterator[Path]:
+        """
+        Retrieve all video files from the courses.
+
+        Args:
+            root (Path): The root directory where the videos are stored.
+            bundle (CourseBundle | None, optional): The course bundle to which the videos belong. Defaults to None.
+
+        Yields:
+            Iterator[Path]: An iterator over the paths of the video files.
+        """
         for course in self.courses:
             yield from course.get_videos(root, self)

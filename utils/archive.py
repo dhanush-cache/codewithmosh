@@ -19,6 +19,18 @@ def extract_videos(
     intro: int = 0,
     others: int = 0,
 ) -> None:
+    """
+    Extracts video files from a given archive and processes them.
+    Args:
+        archive (Path): The path to the archive file containing the videos.
+        target_list (Iterator[Path]): An iterator of target paths where the extracted videos will be saved.
+        ffmpeg (bool, optional): If True, use ffmpeg to process the videos. Defaults to False.
+        intro (int, optional): Timestamp thumbnails of intro videos. Defaults to 0.
+        others (int, optional): Timestamp for thumbnails of other videos. Defaults to 0.
+    Returns:
+        None
+    """
+
     with MoshZip(archive) as zip_ref:
         archived_videos = zip_ref.namelist_from_ext(".mp4", ".mkv")
         print("Processing videos...")
@@ -40,6 +52,16 @@ def extract_videos(
 
 
 def extract_non_videos(source: Path, target_dir: Path) -> None:
+    """
+    Extracts non-video files (e.g., .zip, .pdf) from a given zip archive to a target directory.
+
+    Args:
+        source (Path): The path to the source zip file.
+        target_dir (Path): The directory where the extracted files will be saved.
+
+    Returns:
+        None
+    """
     with MoshZip(source) as zip_ref:
         non_videos = (
             video
@@ -54,6 +76,23 @@ def extract_non_videos(source: Path, target_dir: Path) -> None:
 
 
 def merge_zips(*archives: Path) -> Path:
+    """
+    Merges multiple ZIP archives or directories into a single ZIP archive.
+
+    Args:
+        *archives (Path): One or more paths to ZIP archives or directories to be merged.
+
+    Returns:
+        Path: The path to the resulting merged ZIP archive.
+
+    Raises:
+        BadZipFile: If any of the input ZIP files are corrupted.
+
+    Notes:
+        - If only one ZIP archive is provided, it will be returned as is.
+        - The function creates a temporary directory to unpack the contents of the provided archives or directories.
+        - The contents are then repacked into a new ZIP archive, which is saved in a temporary file.
+    """
     if len(archives) == 1 and archives[0].suffix == ".zip":
         return archives[0]
     with TemporaryDirectory(dir=TEMP) as temp_dir:
