@@ -2,13 +2,12 @@ from typing import Iterable
 
 from seedr.account import SeedrAccount
 
-account = SeedrAccount()
-
 
 class SeedrFile:
     def __init__(self, file_id: int) -> None:
+        self.account = SeedrAccount()
         self.id = file_id
-        self.__file_info = account.fetch_file(self.id)
+        self.__file_info = self.account.fetch_file(self.id)
         self.name = self.__file_info["name"]
         self.url = self.__file_info["url"]
         self.path = ""
@@ -22,8 +21,9 @@ class SeedrFile:
 
 class SeedrFolder:
     def __init__(self, folder_id: int = 0) -> None:
+        self.account = SeedrAccount()
         self.id = folder_id
-        self.__contents = account.list_contents(self.id)
+        self.__contents = self.account.list_contents(self.id)
         self.name = self.__get_name()
         self.path = self.__contents["fullname"]
 
