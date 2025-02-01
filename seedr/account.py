@@ -120,4 +120,5 @@ class SeedrAccount:
         return folder_id
 
     def __update_token(self, token: str) -> None:
+        self.token_file.parent.mkdir(parents=True, exist_ok=True)
         self.token_file.write_text(token)
