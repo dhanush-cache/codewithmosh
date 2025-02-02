@@ -1,12 +1,13 @@
 import argparse
 import json
+from importlib import import_module
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, Dict, List
 
-import hooks
 from course import CourseSerializer
 from utils.archive import extract_non_videos, extract_videos, merge_zips
-from utils.configs import HOME, DOWNLOADS
+from utils.configs import DOWNLOADS, HOME
 from utils.download import download_archive, download_magnet
 from utils.general import copy_to_clipboard
 
@@ -65,15 +66,17 @@ def main() -> None:
 
     slug, template_id, *others = course_data.values()
     intro, others = data["templates"][template_id]
-    if args.config in dir(hooks):
-        hook = getattr(hooks, args.config)
+
+    hook_module = f"hooks.{args.config}"
+    if find_spec(hook_module):
+        hook = import_module(hook_module).main
     else:
         hook = merge_zips
 
     source = (
         hook(*[Path(x) for x in args.input_archive])
         if args.input_archive
-        else (DOWNLOADS / f"{args.config}.zip")
+        else hook(DOWNLOADS / f"{args.config}.zip")
     )
     if not source.exists():
         magnets = course_data["magnets"]
