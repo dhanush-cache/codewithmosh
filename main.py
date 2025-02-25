@@ -73,12 +73,11 @@ def main() -> None:
     else:
         hook = merge_zips
 
-    source = (
-        hook(*[Path(x) for x in args.input_archive])
-        if args.input_archive
-        else hook(DOWNLOADS / f"{args.config}.zip")
-    )
-    if not source.exists():
+    if args.input_archive:
+        source = hook(*[Path(x) for x in args.input_archive])
+    elif (DOWNLOADS / f"{args.config}.zip").exists():
+        source = hook(DOWNLOADS / f"{args.config}.zip")
+    else:
         magnets = course_data["magnets"]
         files: List[Path] = []
         for magnet in magnets:
