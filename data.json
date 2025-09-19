@@ -116,9 +116,17 @@
     "react18-intermediate": {
       "slug": "ultimate-react-part2",
       "template": 4,
-      "magnets": [
-        "1cRqVrIU3bFcgC-wJBkvVafXVf5m8NqQg"
-      ]
+      "magnets": ["1cRqVrIU3bFcgC-wJBkvVafXVf5m8NqQg"]
+    },
+    "spring-boot-fundamentals": {
+      "slug": "spring-boot-fundamentals",
+      "template": 0,
+      "magnets": []
+    },
+    "spring-boot-building-apis": {
+      "slug": "spring-boot-building-apis",
+      "template": 0,
+      "magnets": []
     },
     "sql": {
       "slug": "complete-sql-mastery",
