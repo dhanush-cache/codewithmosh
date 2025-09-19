@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 from course import CourseSerializer
 from utils.archive import extract_non_videos, extract_videos, merge_zips
 from utils.configs import DOWNLOADS, HOME
-from utils.download import download_archive, download_magnet
+from utils.download import download_archive, download_magnet, gdrive_direct_download_url
 from utils.general import copy_to_clipboard
 
 
@@ -81,6 +81,10 @@ def main() -> None:
         magnets = course_data["magnets"]
         files: List[Path] = []
         for magnet in magnets:
+            if not magnet.startswith("magnet:"):
+                url = gdrive_direct_download_url(magnet)
+                files.append(download_archive(url))
+                continue
             if args.quiet:
                 files.append(download_magnet(magnet))
                 continue

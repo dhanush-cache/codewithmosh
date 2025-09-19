@@ -1,6 +1,7 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
+from bs4 import BeautifulSoup
 import requests
 import yt_dlp  # type: ignore
 from tqdm import tqdm
@@ -51,6 +52,31 @@ def download_magnet(magnet: str) -> Path:
         download_video(url, path)
     return target
 
+def gdrive_direct_download_url(file_id: str) -> str:
+    """
+    Given a Google Drive file ID, return a direct download URL that works
+    for both small and large files (handles confirm + uuid params).
+
+    Args:
+        file_id (str): The Google Drive file ID.
+
+    Returns:
+        str: A direct download URL suitable for requests/wget/etc.
+    """
+    base_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    session = requests.Session()
+    response = session.get(base_url, stream=True)
+    response.raise_for_status()
+
+    if "text/html" in response.headers.get("Content-Type", ""):
+        soup = BeautifulSoup(response.content, "html.parser")
+        tag = soup.select_one("input[type=hidden][name=uuid]")
+        if tag:
+            uuid = tag["value"]
+            return f"https://drive.usercontent.google.com/download?id=1cRqVrIU3bFcgC-wJBkvVafXVf5m8NqQg&export=download&authuser=0&confirm=t&uuid={uuid}"
+        raise RuntimeError("Could not extract Google Drive uuid token.")
+    
+    return base_url
 
 def download_archive(url: str, suffix: str = ".zip") -> Path:
     """
