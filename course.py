@@ -7,6 +7,8 @@ from typing import Any, Dict, Iterator
 import requests
 from bs4 import BeautifulSoup
 
+from utils.general import clean_path
+
 
 class CourseSerializer(ABC):
     """
@@ -184,7 +186,7 @@ class Lesson:
             else f"{root}/{course}"
         )
 
-        return Path(f"{base}/{section}/{self}.mkv".replace(":", "-"))
+        return clean_path(Path(f"{base}/{section}/{self}.mkv"))
 
 
 class Section:

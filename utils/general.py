@@ -1,3 +1,4 @@
+from pathlib import Path
 import subprocess
 
 from pyperclip import copy  # type: ignore
@@ -36,3 +37,31 @@ def __termux_copy(text: str, label: str):
         )
     except subprocess.CalledProcessError:
         print(f"{label}: {text}")
+
+
+def clean_path(path: Path) -> Path:
+    """
+    Cleans a Path object by removing or replacing troubling characters
+    in *all parts* of the path (directories + filename).
+    Returns a new Path object.
+    """
+
+    mapping = {
+        "?": "",
+        "*": "",
+        ":": " -",
+        '"': "'",
+        "<": "",
+        ">": "",
+        "|": "-",
+        "\\": "",
+        "\t": " ",
+        "\n": " ",
+        "\r": " ",
+    }
+
+    path_str = str(path)
+    for bad, replacement in mapping.items():
+        path_str = path_str.replace(bad, replacement)
+
+    return Path(path_str)

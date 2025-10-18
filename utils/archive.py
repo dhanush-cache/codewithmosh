@@ -11,6 +11,7 @@ from tqdm import tqdm
 from archive import MoshZip
 from ffmpeg import ffprocess
 from utils.configs import TEMP
+from utils.general import clean_path
 
 
 def extract_videos(
@@ -71,7 +72,7 @@ def extract_non_videos(source: Path, target_dir: Path) -> None:
         )
         print("\nProcessing other files...")
         for video in tqdm(list(non_videos)):
-            target = target_dir / "Files" / video.replace(":", "-")
+            target = clean_path(target_dir / "Files" / video)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(zip_ref.read(video))
 
