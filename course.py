@@ -159,7 +159,7 @@ class Lesson:
         return (minutes * 60) + seconds
 
     def __str__(self) -> str:
-        return f"{self.index:02}- {self.name}"
+        return f"{self.index:02} - {self.name}"
 
     def get_path(
         self,
@@ -208,7 +208,7 @@ class Section:
         )
 
     def __str__(self):
-        return f"{self.index:02}- {self.name}"
+        return f"{self.index:02} - {self.name}"
 
     def __iter__(self):
         return iter(self.get_lessons())
