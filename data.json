@@ -130,12 +130,12 @@
       "template": 4,
       "magnets": ["1cRqVrIU3bFcgC-wJBkvVafXVf5m8NqQg"]
     },
-    "spring-boot-fundamentals": {
+    "spring-boot-part-1": {
       "slug": "spring-boot-fundamentals",
       "template": 0,
       "magnets": []
     },
-    "spring-boot-building-apis": {
+    "spring-boot-part-2": {
       "slug": "spring-boot-building-apis",
       "template": 0,
       "magnets": []
