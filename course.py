@@ -181,7 +181,7 @@ class Lesson:
             Path: The generated file path for the given section, course, and optional course bundle.
         """
         base = (
-            f"{root}/{bundle}/{str(course).lstrip(bundle.get_common_part())}"
+            f"{root}/{bundle}/{bundle.course_dirnames[course.name]}"
             if bundle
             else f"{root}/{course}"
         )
@@ -260,6 +260,8 @@ class CourseBundle(CourseSerializer):
     def __init__(self, slug: str):
         super().__init__(slug)
         self.courses = list(self.get_courses())
+        self.common_part = self.get_common_part()
+        self.course_dirnames = self.get_course_dirnames()
 
     def get_courses(self) -> Iterator[Course]:
         """
@@ -289,10 +291,13 @@ class CourseBundle(CourseSerializer):
                  it will be stripped from the result.
         """
         course_names = [course.name for course in self.courses]
-        prefix = os.path.commonprefix(course_names).strip()
-        if prefix.endswith("Part"):
-            prefix = prefix.rstrip("Part")
-        return prefix
+        return os.path.commonprefix(course_names).strip()
+
+    def get_course_dirnames(self) -> dict[str, str]:
+        return {
+            course.name: f"Part {i} - {course.name.lstrip(self.common_part)}"
+            for i, course in enumerate(self.courses, start=1)
+        }
 
     def get_videos(
         self, root: Path, bundle: "CourseBundle | None" = None
