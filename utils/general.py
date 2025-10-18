@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import subprocess
 
 from pyperclip import copy  # type: ignore
@@ -64,4 +65,4 @@ def clean_path(path: Path) -> Path:
     for bad, replacement in mapping.items():
         path_str = path_str.replace(bad, replacement)
 
-    return Path(path_str)
+    return Path(re.sub(r"\s+", " ", path_str))
