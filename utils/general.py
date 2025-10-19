@@ -1,6 +1,6 @@
-from pathlib import Path
 import re
 import subprocess
+from pathlib import Path
 
 from pyperclip import copy  # type: ignore
 

@@ -1,9 +1,9 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
-from bs4 import BeautifulSoup
 import requests
 import yt_dlp  # type: ignore
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from seedr.account import SeedrAccount
