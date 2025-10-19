@@ -28,7 +28,7 @@ def download_video(url: str, path: Path = DOWNLOADS):
     folder = path if path.is_dir() else path.parent
     folder.mkdir(parents=True, exist_ok=True)
     opts = {"outtmpl": outtmpl}
-    with yt_dlp.YoutubeDL(opts) as ydl:
+    with yt_dlp.YoutubeDL(opts) as ydl:  # type: ignore
         ydl.download([url])  # type: ignore
 
 
@@ -52,6 +52,7 @@ def download_magnet(magnet: str) -> Path:
         download_video(url, path)
     return target
 
+
 def gdrive_direct_download_url(file_id: str) -> str:
     """
     Given a Google Drive file ID, return a direct download URL that works
@@ -73,10 +74,11 @@ def gdrive_direct_download_url(file_id: str) -> str:
         tag = soup.select_one("input[type=hidden][name=uuid]")
         if tag:
             uuid = tag["value"]
-            return f"https://drive.usercontent.google.com/download?id=1cRqVrIU3bFcgC-wJBkvVafXVf5m8NqQg&export=download&authuser=0&confirm=t&uuid={uuid}"
+            return f"https://drive.usercontent.google.com/download?id={file_id}&export=download&authuser=0&confirm=t&uuid={uuid}"
         raise RuntimeError("Could not extract Google Drive uuid token.")
-    
+
     return base_url
+
 
 def download_archive(url: str, suffix: str = ".zip") -> Path:
     """
