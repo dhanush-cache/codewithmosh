@@ -36,6 +36,38 @@ def load_hook(config: str):
     return hook
 
 
+def get_source(
+    config: str,
+    course_data: dict[str, Any],
+    input_archive: List[str] = [],
+    quiet: bool = False,
+):
+    hook = load_hook(config)
+    if input_archive:
+        return hook(*[Path(file) for file in input_archive])
+    if (DOWNLOADS / f"{config}.zip").exists():
+        return hook(DOWNLOADS / f"{config}.zip")
+    if (DOWNLOADS / config).is_dir():
+        files = [file for file in (DOWNLOADS / config).iterdir()]
+        files.sort()
+        return hook(*files)
+
+    magnets = course_data["magnets"]
+    files: List[Path] = []
+    for magnet in magnets:
+        if not magnet.startswith("magnet:"):
+            url = gdrive_direct_download_url(magnet)
+            files.append(download_archive(url))
+            continue
+        if quiet:
+            files.append(download_magnet(magnet))
+            continue
+        copy_to_clipboard(magnet, quiet=True)
+        files.append(download_archive(input("Download Link: ")))
+
+    return hook(*files)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="Code With Mosh",
@@ -76,31 +108,7 @@ def main() -> None:
     slug, template_id, *others = course_data.values()
     intro, others = data["templates"][template_id]
 
-    hook = load_hook(args.config)
-
-    if args.input_archive:
-        source = hook(*[Path(file) for file in args.input_archive])
-    elif (DOWNLOADS / f"{args.config}.zip").exists():
-        source = hook(DOWNLOADS / f"{args.config}.zip")
-    elif (DOWNLOADS / args.config).is_dir():
-        files = [file for file in (DOWNLOADS / args.config).iterdir()]
-        files.sort()
-        source = hook(*files)
-    else:
-        magnets = course_data["magnets"]
-        files: List[Path] = []
-        for magnet in magnets:
-            if not magnet.startswith("magnet:"):
-                url = gdrive_direct_download_url(magnet)
-                files.append(download_archive(url))
-                continue
-            if args.quiet:
-                files.append(download_magnet(magnet))
-                continue
-            copy_to_clipboard(magnet, quiet=True)
-            files.append(download_archive(input("Download Link: ")))
-
-        source = hook(*files)
+    source = get_source(args.config, course_data, args.input_archive, args.quiet)
 
     course = CourseSerializer.get_course(slug)
     target = HOME / "Programming Videos"
