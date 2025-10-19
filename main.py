@@ -27,6 +27,15 @@ def list_configs(courses: Dict[str, Any]) -> None:
         print(f"{i:02}. {course}")
 
 
+def load_hook(config: str):
+    hook_module = f"hooks.{config}"
+    if find_spec(hook_module):
+        hook = import_module(hook_module).main
+    else:
+        hook = merge_zips
+    return hook
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="Code With Mosh",
@@ -67,16 +76,16 @@ def main() -> None:
     slug, template_id, *others = course_data.values()
     intro, others = data["templates"][template_id]
 
-    hook_module = f"hooks.{args.config}"
-    if find_spec(hook_module):
-        hook = import_module(hook_module).main
-    else:
-        hook = merge_zips
+    hook = load_hook(args.config)
 
     if args.input_archive:
-        source = hook(*[Path(x) for x in args.input_archive])
+        source = hook(*[Path(file) for file in args.input_archive])
     elif (DOWNLOADS / f"{args.config}.zip").exists():
         source = hook(DOWNLOADS / f"{args.config}.zip")
+    elif (DOWNLOADS / args.config).is_dir():
+        files = [file for file in (DOWNLOADS / args.config).iterdir()]
+        files.sort()
+        source = hook(*files)
     else:
         magnets = course_data["magnets"]
         files: List[Path] = []
