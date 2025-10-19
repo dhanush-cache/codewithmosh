@@ -52,6 +52,7 @@ class CourseSerializer(ABC):
         "Crash Course",
         "Course",
         "for Beginners",
+        ".js",
     ]
 
     def __init__(self, slug: str) -> None:
