@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Iterator
-
+import string
 import requests
 from bs4 import BeautifulSoup
 
@@ -295,10 +295,15 @@ class CourseBundle(CourseSerializer):
         return os.path.commonprefix(course_names).strip()
 
     def get_course_dirnames(self) -> dict[str, str]:
-        return {
-            course.name: f"Part {i} - {course.name.lstrip(self.common_part)}"
-            for i, course in enumerate(self.courses, start=1)
-        }
+        result: dict[str, str] = {}
+        for i, course in enumerate(self.courses, start=1):
+            prefix = f"Part {i}"
+            unique_part = course.name.lstrip(self.common_part)
+            # remove stuff like 1: , 2: ... from the beginning
+            course_name = unique_part.lstrip(string.digits + ": ")
+            result[course.name] = f"{prefix} - {course_name}" if course_name else prefix
+
+        return result
 
     def get_videos(
         self, root: Path, bundle: "CourseBundle | None" = None
